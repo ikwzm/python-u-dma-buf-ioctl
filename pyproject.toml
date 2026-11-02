@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=74.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-u-dma-buf-ioctl"
+version = "0.1.1"
+description = "Python interface for u-dma-buf IOCTL operations"
+readme = "Readme.md"
+requires-python = ">=3.9"
+license = "BSD-2-Clause"
+authors = [
+    { name = "Ichiro Kawazome" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C",
+    "Operating System :: POSIX :: Linux",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[[tool.setuptools.ext-modules]]
+name         = "u_dma_buf_ioctl._u_dma_buf_ioctl"
+sources      = ["src/u_dma_buf_ioctl/u-dma-buf-ioctl.c"]
+include-dirs = ["src/u_dma_buf_ioctl"]
