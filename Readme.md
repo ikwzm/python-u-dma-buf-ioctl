@@ -208,10 +208,9 @@ The direction values are:
 
 | Value | Meaning           |
 | ----: | ----------------- |
-| 0     | Direction value 0 |
+| 0     | Bidirectional DMA |
 | 1     | DMA to device     |
 | 2     | DMA from device   |
-| 3     | Bidirectional DMA |
 
 The interpretation of synchronization settings depends on the kernel driver implementation.
 
@@ -250,7 +249,7 @@ The range arguments are encoded into a 64-bit synchronization command:
 
 - `offset` must fit in a 32-bit field.
 - `size` must fit in the encoded size field and be aligned to 16 bytes.
-- `direction` must be between 0 and 3.
+- `direction` must be between 0 and 2.
 
 The maximum encoded size is `0xFFFFFFF0` bytes.
 

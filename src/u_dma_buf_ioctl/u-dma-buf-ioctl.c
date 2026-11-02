@@ -377,9 +377,9 @@ u_dma_buf_ioctl_get_sync_owner(PyObject* self, PyObject* args)
  * - "offset":    Synchronization range offset in bytes.
  * - "size":      Synchronization range size in bytes.
  * - "direction": Synchronization direction.
+ *       0: DMA bidirectional.
  *       1: DMA to device.
  *       2: DMA from device.
- *       3: DMA bidirectional.
  * - "owner":     Synchronization owner.
  *       0: CPU.
  *       1: Device.
@@ -435,10 +435,10 @@ u_dma_buf_ioctl_get_sync(PyObject* self, PyObject* args)
  *     2: No operation.
  *     3: Sync for device.
  * - "direction": Synchronization direction.
- *     0: Unchanged.
+ *     0: DMA bidirectional.
  *     1: DMA to device.
  *     2: DMA from device.
- *     3: DMA bidirectional.
+ *     3: Unchanged.
  * - "fast":      Fast synchronization flag.
  * - "mode":      Synchronization mode.
  *
@@ -523,9 +523,9 @@ u_dma_buf_ioctl_set_sync(PyObject* self, PyObject* args)
  * - @size: Synchronization range size in bytes.
  *     Must be aligned to 16 bytes and fit in the 32-bit size field.
  * - @direction: DMA data direction.
+ *     0: DMA bidirectional.
  *     1: DMA to device.
  *     2: DMA from device.
- *     3: DMA bidirectional.
  *
  * If all synchronization parameters are omitted, the previously configured
  * synchronization parameters are used.
@@ -577,8 +577,8 @@ u_dma_buf_ioctl_sync_for_cpu(PyObject* self, PyObject* args)
             return NULL;
         }
 
-        if (direction < 0 || direction > 3) {
-            PyErr_SetString(PyExc_ValueError, "direction must be between 0 and 3");
+        if (direction < 0 || direction > 2) {
+            PyErr_SetString(PyExc_ValueError, "direction must be between 0 and 2");
             return NULL;
         }
     }
@@ -616,9 +616,9 @@ u_dma_buf_ioctl_sync_for_cpu(PyObject* self, PyObject* args)
  * - @size: Synchronization range size in bytes.
  *     Must be aligned to 16 bytes and fit in the 32-bit size field.
  * - @direction: DMA data direction.
+ *     0: DMA bidirectional.
  *     1: DMA to device.
  *     2: DMA from device.
- *     3: DMA bidirectional.
  *
  * If all synchronization parameters are omitted, the previously configured
  * synchronization parameters are used.
@@ -672,8 +672,8 @@ u_dma_buf_ioctl_sync_for_device(PyObject* self, PyObject* args)
             return NULL;
         }
 
-        if (direction < 0 || direction > 3) {
-            PyErr_SetString(PyExc_ValueError, "direction must be between 0 and 3");
+        if (direction < 0 || direction > 2) {
+            PyErr_SetString(PyExc_ValueError, "direction must be between 0 and 2");
             return NULL;
         }
     }
@@ -893,9 +893,9 @@ static PyMethodDef u_dma_buf_ioctl_methods[] = {
         "        offset:    Synchronization range offset in bytes.\n"
         "        size:      Synchronization range size in bytes.\n"
         "        direction: Synchronization direction.\n"
+        "            0: DMA bidirectional.\n"
         "            1: DMA to device.\n"
         "            2: DMA from device.\n"
-        "            3: DMA bidirectional.\n"
         "        owner:     Synchronization owner.\n"
         "            0: CPU.\n"
         "            1: Device.\n"
@@ -925,10 +925,10 @@ static PyMethodDef u_dma_buf_ioctl_methods[] = {
         "                2: No operation.\n"
         "                3: Sync for device.\n"
         "            direction: Synchronization direction.\n"
-        "                0: Unchanged.\n"
+        "                0: DMA bidirectional.\n"
         "                1: DMA to device.\n"
         "                2: DMA from device.\n"
-        "                3: DMA bidirectional.\n"
+        "                3: Unchanged.\n"
         "            fast:      Fast synchronization flag.\n"
         "            mode:      Synchronization mode.\n"
         "\n"
@@ -954,9 +954,9 @@ static PyMethodDef u_dma_buf_ioctl_methods[] = {
         "    offset: Synchronization range offset in bytes (uint32_t).\n"
         "    size: Synchronization range size in bytes (32-bit field, 16-byte aligned).\n"
         "    direction: DMA data direction.\n"
+        "        0: DMA bidirectional.\n"
         "        1: DMA to device.\n"
         "        2: DMA from device.\n"
-        "        3: DMA bidirectional.\n"
         "    offset, size, and direction are optional, but must be specified\n"
         "    together. If omitted, the previously configured synchronization\n"
         "    parameters are used.\n"
@@ -983,9 +983,9 @@ static PyMethodDef u_dma_buf_ioctl_methods[] = {
         "    offset: Synchronization range offset in bytes (uint32_t).\n"
         "    size: Synchronization range size in bytes (32-bit field, 16-byte aligned).\n"
         "    direction: DMA data direction.\n"
+        "        0: DMA bidirectional.\n"
         "        1: DMA to device.\n"
         "        2: DMA from device.\n"
-        "        3: DMA bidirectional.\n"
         "    offset, size, and direction are optional, but must be specified\n"
         "    together. If omitted, the previously configured synchronization\n"
         "    parameters are used.\n"
