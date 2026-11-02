@@ -44,7 +44,7 @@
 #define MODULE_NAME         _u_dma_buf_ioctl
 #endif
 
-#define MODULE_VERSION      "0.1.0"
+#define MODULE_VERSION      "0.1.1"
 #define MODULE_AUTHOR       "Ichiro Kawazome"
 #define MODULE_AUTHOR_EMAIL "ichiro_k@ca2-so-net.ne.jp"
 #define MODULE_LICENSE      "BSD 2-Clause"
