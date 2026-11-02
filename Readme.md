@@ -59,8 +59,8 @@ source .venv/bin/activate
 Install the package in editable mode:
 
 ```bash
-python -m pip install --upgrade pip setuptools
-python -m pip install -e .
+python3 -m pip install --upgrade pip setuptools
+python3 -m pip install -e .
 ```
 
 Quick Start
@@ -72,10 +72,10 @@ Open a u-dma-buf device file and retrieve its information:
 import u_dma_buf_ioctl
 
 with open("/dev/udmabuf0", "r+b", buffering=0) as fp:
-    drv_info = u_dma_buf_ioctl.get_drv_info(fp)
-    dev_info = u_dma_buf_ioctl.get_dev_info(fp)
+    drv_info = u_dma_buf_ioctl.get_driver_info(fp)
+    dev_info = u_dma_buf_ioctl.get_device_info(fp)
     size = u_dma_buf_ioctl.get_size(fp)
-    dma_addr = u_dma_buf_ioctl.get_addr(fp)
+    dma_addr = u_dma_buf_ioctl.get_dma_address(fp)
 
     print("Driver information:", drv_info)
     print("Device information:", dev_info)
@@ -83,20 +83,22 @@ with open("/dev/udmabuf0", "r+b", buffering=0) as fp:
     print(f"DMA address: 0x{dma_addr:X}")
 ```
 
-The device file must be accessible to the current user. Depending on the system configuration, this may require appropriate device permissions.
+The device file must be accessible to the current user.
+Depending on the system configuration, this may require appropriate device permissions.
 
 ## API Reference
 
-All functions that operate on a device file accept an open Python file object. The extension obtains its file descriptor using `PyObject_AsFileDescriptor()`.
+All functions that operate on a device file accept an open Python file object.
+The extension obtains its file descriptor using `PyObject_AsFileDescriptor()`.
 
 The extension does not close the file descriptor supplied by the caller.
 
-### `get_drv_info(file)`
+### `get_driver_info(file)`
 
 Retrieve driver information.
 
 ```python
-info = u_dma_buf_ioctl.get_drv_info(fp)
+info = u_dma_buf_ioctl.get_driver_info(fp)
 ```
 
 Returns a dictionary containing driver information, including:
@@ -114,26 +116,27 @@ Returns a dictionary containing driver information, including:
 
 The feature flags describe the capabilities reported by the running kernel driver.
 
-### `get_dev_info(file)`
+### `get_device_info(file)`
 
 Retrieve device information.
 
 ```python
-info = u_dma_buf_ioctl.get_dev_info(fp)
+info = u_dma_buf_ioctl.get_device_info(fp)
 ```
 
 Returns a dictionary containing:
 
 | Key            | Description                                  |
 | -------------- | -------------------------------------------- |
-| `addr`         | DMA address                                  |
+| `dma_address`  | DMA address                                  |
 | `size`         | DMA buffer size in bytes                     |
 | `dma_mask`     | DMA mask width in bits                       |
 | `dma_coherent` | Whether DMA coherency is reported as enabled |
 | `mmap_mode`    | Configured mmap mode                         |
 | `flags`        | Raw device information flags                 |
 
-The `addr` field is a DMA address. It should not automatically be treated as a CPU virtual address or a universally valid physical address.
+The `dma_address` field is a DMA address.
+It should not automatically be treated as a CPU virtual address or a universally valid physical address.
 
 The `mmap_mode` values are:
 
@@ -155,22 +158,22 @@ size = u_dma_buf_ioctl.get_size(fp)
 
 Returns a Python integer.
 
-### `get_addr(file)`
+### `get_dma_address(file)`
 
 Retrieve the DMA address of the buffer.
 
 ```python
-dma_addr = u_dma_buf_ioctl.get_addr(fp)
+dma_addr = u_dma_buf_ioctl.get_dma_address(fp)
 ```
 
 Returns a Python integer representing the unsigned 64-bit DMA address.
 
-### `get_owner(file)`
+### `get_sync_owner(file)`
 
 Retrieve the current synchronization owner.
 
 ```python
-owner = u_dma_buf_ioctl.get_owner(fp)
+owner = u_dma_buf_ioctl.get_sync_owner(fp)
 ```
 
 The return value is:
@@ -220,7 +223,9 @@ Configure synchronization settings.
 u_dma_buf_ioctl.set_sync(fp, {"size": 4096, "offset": 0, "direction": 1})
 ```
 
-The `settings` argument is a dictionary. The `size` and `offset` fields specify the synchronization range. The optional `command`, `direction`, `fast`, and `mode` fields configure the corresponding synchronization flags.
+The `settings` argument is a dictionary.
+The `size` and `offset` fields specify the synchronization range.
+The optional `command`, `direction`, `fast`, and `mode` fields configure the corresponding synchronization flags.
 
 The supported fields and their semantics must match the IOCTL interface implemented by the running kernel driver.
 
@@ -261,15 +266,16 @@ The argument format and validation rules are the same as those of `sync_for_cpu(
 
 Both synchronization functions return `None` on success and raise `OSError` if the IOCTL operation fails.
 
-### `export(file, offset, size, flag=0)`
+### `export_dma_buf(file, offset, size, flag=0)`
 
 Export a range of a u-dma-buf buffer as a DMA-BUF file descriptor.
 
 ```python
-dma_buf_fd, dma_addr = u_dma_buf_ioctl.export(fp, 0, 4096)
+dma_buf_fd, dma_addr = u_dma_buf_ioctl.export_dma_buf(fp, 0, 4096)
 ```
 
-The `flag` argument is optional. It specifies the file descriptor flags supported by the driver, such as `os.O_CLOEXEC`, `os.O_SYNC`, and access mode flags.
+The `flag` argument is optional.
+It specifies the file descriptor flags supported by the driver, such as `os.O_CLOEXEC`, `os.O_SYNC`, and access mode flags.
 
 For example:
 
@@ -278,7 +284,7 @@ import os
 import u_dma_buf_ioctl
 
 with open("/dev/udmabuf0", "r+b", buffering=0) as fp:
-    dma_buf_fd, dma_addr = u_dma_buf_ioctl.export(
+    dma_buf_fd, dma_addr = u_dma_buf_ioctl.export_dma_buf(
         fp,
         0,
         4096,
@@ -298,7 +304,8 @@ The return value is a tuple:
 - `dma_buf_fd` is the newly exported DMA-BUF file descriptor.
 - `dma_addr` is the DMA address returned by the driver for the exported buffer range.
 
-**The caller is responsible for closing the returned file descriptor.** It is independent of the file descriptor used to open the original u-dma-buf device.
+**The caller is responsible for closing the returned file descriptor.**
+It is independent of the file descriptor used to open the original u-dma-buf device.
 
 To convert the returned descriptor into a Python file object, use `os.fdopen()`:
 
@@ -314,9 +321,11 @@ finally:
     dma_buf_file.close()
 ```
 
-Closing the resulting file object also closes `dma_buf_fd`. Do not close the same descriptor a second time.
+Closing the resulting file object also closes `dma_buf_fd`.
+Do not close the same descriptor a second time.
 
-The appropriate file mode depends on how the exported DMA-BUF is intended to be used. Exporting a DMA-BUF does not itself guarantee cache coherency or synchronize access between the CPU and other devices.
+The appropriate file mode depends on how the exported DMA-BUF is intended to be used.
+Exporting a DMA-BUF does not itself guarantee cache coherency or synchronize access between the CPU and other devices.
 
 Error Handling
 ----------------------------------------------------------------------------------
@@ -335,7 +344,8 @@ except OSError as exc:
     print(f"IOCTL failed: {exc}")
 ```
 
-Invalid argument types or argument counts may raise `TypeError`. Values outside supported ranges may raise `OverflowError`, and invalid parameter values may raise `ValueError`.
+Invalid argument types or argument counts may raise `TypeError`.
+Values outside supported ranges may raise `OverflowError`, and invalid parameter values may raise `ValueError`.
 
 DMA Buffer Synchronization
 ----------------------------------------------------------------------------------
@@ -358,9 +368,11 @@ u_dma_buf_ioctl.sync_for_device(fp, 1, 0, 4096, 1)
 u_dma_buf_ioctl.sync_for_cpu(fp, 1, 0, 4096, 2)
 ```
 
-The example illustrates the intended sequence. The actual synchronization commands and directions must match the driver implementation and the DMA operation being performed.
+The example illustrates the intended sequence.
+The actual synchronization commands and directions must match the driver implementation and the DMA operation being performed.
 
-Cache synchronization does not replace the need to coordinate access between the CPU and the device. The application must ensure that a device has completed its operation before the CPU accesses the affected buffer range.
+Cache synchronization does not replace the need to coordinate access between the CPU and the device.
+The application must ensure that a device has completed its operation before the CPU accesses the affected buffer range.
 
 Development
 ----------------------------------------------------------------------------------
