@@ -44,7 +44,7 @@
 #define MODULE_NAME         _u_dma_buf_ioctl
 #endif
 
-#define MODULE_VERSION      "0.1.1"
+#define MODULE_VERSION      "0.2.0"
 #define MODULE_AUTHOR       "Ichiro Kawazome"
 #define MODULE_AUTHOR_EMAIL "ichiro_k@ca2-so-net.ne.jp"
 #define MODULE_LICENSE      "BSD 2-Clause"
@@ -774,6 +774,89 @@ u_dma_buf_ioctl_export(PyObject* self, PyObject* args)
     );
 }
 
+/**
+ * u_dma_buf_ioctl_get_sync_mode() - Get the synchronization mode.
+ * @self: Python module object.
+ * @args: Tuple containing a file object.
+ *
+ * Retrieves the synchronization mode using U_DMA_BUF_IOCTL_GET_SYNC_MODE.
+ *
+ * Returns a Python integer representing the synchronization mode:
+ * - 0: CPU cache is enabled regardless of the O_SYNC flag.
+ * - 1: CPU cache is disabled if O_SYNC is specified; otherwise enabled.
+ * - 2: Write-combine is used if O_SYNC is specified; otherwise CPU cache is enabled.
+ * - 3: DMA coherency mode is used if O_SYNC is specified; otherwise CPU cache is enabled.
+ * - 4: CPU cache is enabled regardless of the O_SYNC flag.
+ * - 5: CPU cache is disabled regardless of the O_SYNC flag.
+ * - 6: Write-combine is used regardless of the O_SYNC flag.
+ * - 7: DMA coherency mode is used regardless of the O_SYNC flag.
+ *
+ * Returns NULL with a Python exception on error.
+ */
+static PyObject*
+u_dma_buf_ioctl_get_sync_mode(PyObject* self, PyObject* args)
+{
+    PyObject* file_obj;
+    int       fd;
+    uint32_t  sync_mode = 0;
+
+    if (!PyArg_ParseTuple(args, "O", &file_obj))
+        return NULL;
+
+    fd = PyObject_AsFileDescriptor(file_obj);
+    if (fd < 0)
+        return NULL;
+
+    if (ioctl(fd, U_DMA_BUF_IOCTL_GET_SYNC_MODE, &sync_mode) < 0)
+        return PyErr_SetFromErrno(PyExc_OSError);
+
+    return PyLong_FromUnsignedLong((unsigned long)sync_mode);
+}
+
+/**
+ * u_dma_buf_ioctl_set_sync_mode() - Set the synchronization mode.
+ * @self: Python module object.
+ * @args: Tuple containing a file object and a synchronization mode.
+ *
+ * Sets the synchronization mode using U_DMA_BUF_IOCTL_SET_SYNC_MODE.
+ *
+ * The synchronization mode specifies the CPU cache behavior:
+ * - 0: CPU cache is enabled regardless of the O_SYNC flag.
+ * - 1: CPU cache is disabled if O_SYNC is specified; otherwise enabled.
+ * - 2: Write-combine is used if O_SYNC is specified; otherwise CPU cache is enabled.
+ * - 3: DMA coherency mode is used if O_SYNC is specified; otherwise CPU cache is enabled.
+ * - 4: CPU cache is enabled regardless of the O_SYNC flag.
+ * - 5: CPU cache is disabled regardless of the O_SYNC flag.
+ * - 6: Write-combine is used regardless of the O_SYNC flag.
+ * - 7: DMA coherency mode is used regardless of the O_SYNC flag.
+ *
+ * Returns None on success, or NULL with a Python exception on error.
+ */
+static PyObject*
+u_dma_buf_ioctl_set_sync_mode(PyObject* self, PyObject* args)
+{
+    PyObject* file_obj;
+    int       fd;
+    uint32_t  sync_mode;
+
+    if (!PyArg_ParseTuple(args, "OI", &file_obj, &sync_mode))
+        return NULL;
+
+    if (sync_mode > 7) {
+        PyErr_SetString(PyExc_ValueError, "sync_mode must be in the range 0 to 7");
+        return NULL;
+    }
+
+    fd = PyObject_AsFileDescriptor(file_obj);
+    if (fd < 0)
+        return NULL;
+
+    if (ioctl(fd, U_DMA_BUF_IOCTL_SET_SYNC_MODE, &sync_mode) < 0)
+        return PyErr_SetFromErrno(PyExc_OSError);
+
+    Py_RETURN_NONE;
+}
+
 /*
  * Module definition
  */
@@ -1025,6 +1108,56 @@ static PyMethodDef u_dma_buf_ioctl_methods[] = {
         "        of arguments is provided.\n"
         "    OverflowError: If offset, size, or flag is outside its supported range.\n"
         "    OSError: If the IOCTL operation fails.\n"
+    },
+    {
+        "get_sync_mode",
+        u_dma_buf_ioctl_get_sync_mode,
+        METH_VARARGS,
+        "Get the synchronization mode.\n"
+        "\n"
+        "Args:\n"
+        "    file: An open u-dma-buf device file object.\n"
+        "\n"
+        "Returns:\n"
+        "    int: synchronization mode.\n"
+        "        0: CPU cache enabled regardless of O_SYNC.\n"
+        "        1: CPU cache disabled if O_SYNC; otherwise enabled.\n"
+        "        2: Write-combine if O_SYNC; otherwise CPU cache enabled.\n"
+        "        3: DMA coherency if O_SYNC; otherwise CPU cache enabled.\n"
+        "        4: CPU cache enabled regardless of O_SYNC.\n"
+        "        5: CPU cache disabled regardless of O_SYNC.\n"
+        "        6: Write-combine regardless of O_SYNC.\n"
+        "        7: DMA coherency regardless of O_SYNC.\n"
+        "\n"
+        "Raises:\n"
+        "    OSError: If the IOCTL operation fails.\n"
+        "    TypeError: If the argument does not provide a valid file descriptor.\n"
+    },
+    {
+        "set_sync_mode",
+        u_dma_buf_ioctl_set_sync_mode,
+        METH_VARARGS,
+        "Set the synchronization mode.\n"
+        "\n"
+        "Args:\n"
+        "    file: An open u-dma-buf device file object.\n"
+        "    mode: synchronization mode (0 to 7).\n"
+        "        0: CPU cache enabled regardless of O_SYNC.\n"
+        "        1: CPU cache disabled if O_SYNC; otherwise enabled.\n"
+        "        2: Write-combine if O_SYNC; otherwise CPU cache enabled.\n"
+        "        3: DMA coherency if O_SYNC; otherwise CPU cache enabled.\n"
+        "        4: CPU cache enabled regardless of O_SYNC.\n"
+        "        5: CPU cache disabled regardless of O_SYNC.\n"
+        "        6: Write-combine regardless of O_SYNC.\n"
+        "        7: DMA coherency regardless of O_SYNC.\n"
+        "\n"
+        "Returns:\n"
+        "    None on success.\n"
+        "\n"
+        "Raises:\n"
+        "    OSError: If the IOCTL operation fails.\n"
+        "    TypeError: If the arguments have invalid types.\n"
+        "    OverflowError: If mode is outside the uint32_t range.\n"
     },
     {NULL, NULL, 0, NULL}
 };
