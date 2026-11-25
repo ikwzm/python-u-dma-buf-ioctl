@@ -1,4 +1,4 @@
-__version__     = "0.1.1"
+__version__     = "0.2.0"
 __author__      = "Ichiro Kawazome"
 __copyright__   = "Copyright (c) 2026 Ichiro Kawazome"
 __license__     = "BSD 2-Clause"
@@ -15,6 +15,8 @@ from ._u_dma_buf_ioctl import set_sync
 from ._u_dma_buf_ioctl import sync_for_cpu
 from ._u_dma_buf_ioctl import sync_for_device
 from ._u_dma_buf_ioctl import export_dma_buf
+from ._u_dma_buf_ioctl import get_sync_mode
+from ._u_dma_buf_ioctl import set_sync_mode
 
 __all__ = [
     "get_device_info"  ,
@@ -27,4 +29,6 @@ __all__ = [
     "sync_for_cpu"     ,
     "sync_for_device"  ,
     "export_dma_buf"   ,
+    "get_sync_mode"    ,
+    "set_sync_mode"    ,
 ]

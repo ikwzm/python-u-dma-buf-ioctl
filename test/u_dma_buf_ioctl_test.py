@@ -202,7 +202,16 @@ def main():
                 print(f"Error: not match sync info")
                 return 1
             
-            
+            test_title     = "Synchronization Test.5.{} set_sync_mode({})"
+            for set_sync_mode in range(0,8):
+                u_dma_buf_ioctl.set_sync_mode(device, set_sync_mode)
+                get_sync_mode  = u_dma_buf_ioctl.get_sync_mode(device)
+                print_info(test_title.format(set_sync_mode+1, set_sync_mode),
+                           {"set_sync_mode": set_sync_mode,
+                            "get_sync_mode": get_sync_mode})
+                if get_sync_mode != set_sync_mode:
+                    print(f"Error: not match sync_mode")
+                    return 1
             
     except OSError as exc:
         print(f"Error: {exc}", file=sys.stderr)
