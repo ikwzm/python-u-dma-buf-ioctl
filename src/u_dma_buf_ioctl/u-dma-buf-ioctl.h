@@ -34,7 +34,9 @@
 
 #define DEFINE_U_DMA_BUF_IOCTL_FLAGS(name,type,lo,hi)                     \
 static const  int      U_DMA_BUF_IOCTL_FLAGS_ ## name ## _SHIFT = (lo);   \
-static const  uint64_t U_DMA_BUF_IOCTL_FLAGS_ ## name ## _MASK  = (((uint64_t)1UL << ((hi)-(lo)+1))-1); \
+static const  uint64_t U_DMA_BUF_IOCTL_FLAGS_ ## name ## _MASK  =         \
+    (((hi)-(lo)+1) >= 64) ? ~((uint64_t)0) :                              \
+                            (((uint64_t)1 << ((hi)-(lo)+1)) - 1);         \
 static inline void SET_U_DMA_BUF_IOCTL_FLAGS_ ## name(type *p, int value) \
 {                                                                         \
     const int      shift = U_DMA_BUF_IOCTL_FLAGS_ ## name ## _SHIFT;      \
@@ -60,6 +62,8 @@ DEFINE_U_DMA_BUF_IOCTL_FLAGS(USE_OF_DMA_CONFIG  , u_dma_buf_ioctl_drv_info , 12,
 DEFINE_U_DMA_BUF_IOCTL_FLAGS(USE_OF_RESERVED_MEM, u_dma_buf_ioctl_drv_info , 13, 13)
 DEFINE_U_DMA_BUF_IOCTL_FLAGS(USE_QUIRK_MMAP     , u_dma_buf_ioctl_drv_info , 16, 16)
 DEFINE_U_DMA_BUF_IOCTL_FLAGS(USE_QUIRK_MMAP_PAGE, u_dma_buf_ioctl_drv_info , 17, 17)
+DEFINE_U_DMA_BUF_IOCTL_FLAGS(USE_DEV_PROPERTY   , u_dma_buf_ioctl_drv_info , 20, 21)
+DEFINE_U_DMA_BUF_IOCTL_FLAGS(STATIC_DEVICE_NUM  , u_dma_buf_ioctl_drv_info , 24, 31)
 
 typedef struct {
     uint64_t flags;
@@ -94,6 +98,7 @@ typedef struct {
     uint64_t offset;
     uint64_t addr;
     int      fd;
+    uint8_t  padding[4];
 } u_dma_buf_ioctl_export_args;
 
 DEFINE_U_DMA_BUF_IOCTL_FLAGS(EXPORT_FD_FLAGS, u_dma_buf_ioctl_export_args,  0, 31)
@@ -109,4 +114,6 @@ DEFINE_U_DMA_BUF_IOCTL_FLAGS(EXPORT_FD_FLAGS, u_dma_buf_ioctl_export_args,  0, 3
 #define U_DMA_BUF_IOCTL_GET_SYNC            _IOR (U_DMA_BUF_IOCTL_MAGIC, 8, u_dma_buf_ioctl_sync_args)
 #define U_DMA_BUF_IOCTL_SET_SYNC            _IOW (U_DMA_BUF_IOCTL_MAGIC, 9, u_dma_buf_ioctl_sync_args)
 #define U_DMA_BUF_IOCTL_EXPORT              _IOWR(U_DMA_BUF_IOCTL_MAGIC,10, u_dma_buf_ioctl_export_args)
+#define U_DMA_BUF_IOCTL_GET_SYNC_MODE       _IOR (U_DMA_BUF_IOCTL_MAGIC,11, uint32_t)
+#define U_DMA_BUF_IOCTL_SET_SYNC_MODE       _IOW (U_DMA_BUF_IOCTL_MAGIC,12, uint32_t)
 #endif /* #ifndef U_DMA_BUF_IOCTL_H */
